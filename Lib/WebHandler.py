@@ -146,6 +146,19 @@ class WebHandler( tornado.web.RequestHandler ):
           self.__credDict[ 'validDN' ] = True
           self.__credDict[ 'username' ] = result[ 'Value' ]
       return
+    if Conf.balancer() == "apache":
+      headers = self.request.headers
+      if headers['Ssl-Client-Verify'] == 'SUCCESS':
+        DN = headers['Ssl-Client-S-Dn']
+        self.__credDict[ 'DN' ] = DN
+        self.__credDict[ 'issuer' ] = headers['Ssl-Client-I-Dn']
+        result = Registry.getUsernameForDN( DN )
+        if not result[ 'OK' ]:
+          self.__credDict[ 'validDN' ] = False
+        else:
+          self.__credDict[ 'validDN' ] = True
+          self.__credDict[ 'username' ] = result[ 'Value' ]
+      return
     #TORNADO
     if not self.request.protocol == "https":
       return
